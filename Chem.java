@@ -131,7 +131,7 @@ public class Chem {
 						propensity *= species[reactants[1]];
 					}
 					
-					// Generate random numer and next-time
+					// Generate random number and next-time
 					double rand = Math.random();
 					
 					if (rand == 0) {
