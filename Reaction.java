@@ -28,7 +28,7 @@ import java.util.ArrayList;
  * @author Nate Kibler (PID: nkibler7)
  * @author Chris Schweinhart (PID: schwein)
  */
-public class Reaction {
+public class Reaction implements Comparable <Reaction> {
 	private double rate;
 	private ReactionType type;
 	private int[] reactants, products;
@@ -104,5 +104,14 @@ public class Reaction {
 	 */
 	public ArrayList<Reaction> getTable() {
 		return affectedReactions;
+	}
+
+	@Override
+	public int compareTo(Reaction r) {
+		if (r.getNextTime() > getNextTime())
+			return -1;
+		if (r.getNextTime() < getNextTime())
+			return 1;
+		return 0;
 	}
 }

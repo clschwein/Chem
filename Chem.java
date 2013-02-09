@@ -74,6 +74,8 @@ public class Chem {
 		} catch (FileNotFoundException e) {
 			System.out.println("The output file could not be found.");
 			System.exit(3);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
 		numRuns = Integer.parseInt(args[0]);
@@ -87,7 +89,7 @@ public class Chem {
 				track = false;
 				
 				// Choose the next reaction
-				current = reactionsHeap.getMin();
+				current = reactionsHeap.removeMin();
 				time += current.getNextTime();
 				
 				// Test for simulation end
@@ -141,8 +143,7 @@ public class Chem {
 					}
 					
 					// Remove and re-add to re-order heap
-					reactionsHeap.remove(rxn);
-					reactionsHeap.add(rxn);
+					reactionsHeap.insert(rxn);
 				}
 				
 				// Output for reaction
