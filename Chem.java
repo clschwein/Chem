@@ -19,6 +19,7 @@
 // letter of this restriction.
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Main Chem class for the simulation project.
@@ -60,19 +61,17 @@ public class Chem {
 		if (args.length != 3) {
 			System.out.println("Usage:");
 			System.out.println("Chemistry INPUT_FILE RUN OUTPUT_FILE");
-			System.exit(1);
+			System.exit(0);
 		}
 
 		// Read from file to initialize variables
-		if (!initialize(args[1])) {
-			System.exit(2);
-		}
+		initialize(args[1]);
 
 		try {
 			out = new BufferedWriter(new FileWriter(args[2]));
 		} catch (FileNotFoundException e) {
 			System.out.println("The output file could not be found.");
-			System.exit(3);
+			System.exit(0);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -83,6 +82,7 @@ public class Chem {
 			time = 0;
 			
 			// Initialize the heap and reactions
+			reactionsHeap = new MinHeap<Reaction>(new Reaction[reactionsArray.length], 0, reactionsArray.length);
 			for (Reaction rxn : reactionsArray) {
 				double propensity = rxn.getRate();
 				int[] reactants = rxn.getReactants();
@@ -223,7 +223,7 @@ public class Chem {
 	 *            the file name for reading
 	 * @return true if successful, false otherwise
 	 */
-	private static boolean initialize(String fileName) {
+	private static void initialize(String fileName) {
 		
 		BufferedReader in = null;
 
@@ -232,24 +232,28 @@ public class Chem {
 			in = new BufferedReader(new FileReader(fileName));
 		} catch (FileNotFoundException e) {
 			System.out.println("The input file could not be found.");
-			return false;
+			System.exit(0);
 		}
 
 		try {
 			String line = in.readLine();
 			String[] tokens = line.split(" ");
 
+			LinkedList<LinkedList<Reaction>> speciesLinks = new LinkedList<LinkedList<Reaction>>();
+			
 			// Use the first four numbers as initial values
 			int numSpecies = Integer.parseInt(tokens[0]);
 			int numReactions = Integer.parseInt(tokens[1]);
-			int numDisplay = Integer.parseInt(tokens[2]);
+			int numDisplays = Integer.parseInt(tokens[2]);
 			simulationTime = Integer.parseInt(tokens[3]);
 
 			// Allocate arrays based on our given parameters
 			initialSpecies = new int[numSpecies];
 			species = new int[numSpecies];
 			reactionsArray = new Reaction[numReactions];
-			displays = new int[numDisplay];
+			displays = new int[numDisplays];
+			tracks = new boolean[numSpecies];
+			data = new int[numDisplays][numRuns];
 
 			line = in.readLine();
 			tokens = line.split(" ");
@@ -261,7 +265,7 @@ public class Chem {
 			line = in.readLine();
 			tokens = line.split(" ");
 			// Read in display species
-			for (int i = 0; i < numDisplay; i++) {
+			for (int i = 0; i < displays.length; i++) {
 				displays[i] = Integer.parseInt(tokens[i]);
 				tracks[Integer.parseInt(tokens[i])] = true;
 			}
@@ -325,18 +329,50 @@ public class Chem {
 				reactionsArray[i] = new Reaction(rate, type, reactants, products);
 			}
 
-			// TODO: build reaction dependent tables from reaction array
+			// Build species links
+			for (int i = 0; i < reactionsArray.length; i++) {
+				Reaction rxn = reactionsArray[i];
+				int[] reactants = rxn.getReactants();
+				for (int j = 0; j < reactants.length; j++) {
+					speciesLinks.get(i).add(rxn);
+				}
+			}
+			
+			// Build reaction dependent tables
+			for (int i = 0; i < reactionsArray.length; i++) {
+				LinkedList<Reaction> table = new LinkedList<Reaction>();
+				Reaction rxn = reactionsArray[i];
+				int[] reactants = rxn.getReactants();
+				for (int j = 0; j < reactants.length; j++) {
+					LinkedList<Reaction> links = speciesLinks.get(reactants[j]);
+					for (int k = 0; k < links.size(); k ++) {
+						if (!table.contains(links.get(k))) {
+							table.add(links.get(k));
+						}
+					}
+				}
+				
+				int[] products = rxn.getProducts();
+				for (int j = 0; j < products.length; j++) {
+					LinkedList<Reaction> links = speciesLinks.get(products[j]);
+					for (int k = 0; k < links.size(); k ++) {
+						if (!table.contains(links.get(k))) {
+							table.add(links.get(k));
+						}
+					}
+				}
+				
+				rxn.setTable((Reaction[])table.toArray());
+			}
 			
 			in.close();
 		} catch (IOException e) {
 			System.out.println("Error reading from file.");
-			return false;
+			System.exit(0);
 		} catch (Exception e) {
 			System.out.println("Incorrect file formatting.");
-			return false;
+			System.exit(0);
 		}
-
-		return true;
 	}
 
 	/**

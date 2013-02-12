@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 /**
  * This Reaction class allows for the creation of a separate Reaction object for
  * every reaction that is read in from the input file. The data is stored and retrieved
@@ -14,7 +12,7 @@ public class Reaction implements Comparable <Reaction> {
 	private int[] reactants, products;
 	private double nextTime = 0.0;
 	private int fired = 0;
-	private ArrayList<Reaction> affectedReactions = null;
+	private Reaction[] affectedReactions = null;
 	
 	/**
 	 * Creates a new Reaction object.
@@ -81,12 +79,21 @@ public class Reaction implements Comparable <Reaction> {
 	/**
 	 * Returns an ArrayList of the reactions that need to be updated from the firing
 	 * event of this specific reaction.
-	 * @return an ArrayList of Reaction objects that need their times updated
+	 * @return an array of Reaction objects that need their times updated
 	 */
-	public ArrayList<Reaction> getTable() {
+	public Reaction[] getTable() {
 		return affectedReactions;
 	}
-
+	
+	/**
+	 * Sets the reaction dependent table to the given new table
+	 * 
+	 * @param newAffectedReactions - the new reaction dependency table
+	 */
+	public void setTable(Reaction[] newAffectedReactions) {
+		affectedReactions = newAffectedReactions;
+	}
+	
 	/**
 	 * Returns an integer value for the number of times this
 	 * reaction has occurred in the simulation
