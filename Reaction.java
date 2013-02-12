@@ -1,23 +1,3 @@
-// On my honor:
-//
-// - I have not used source code obtained from another student,
-// or any other unauthorized source, either modified or
-// unmodified.
-//
-// - All source code and documentation used in my program is
-// either my original work, or was derived by me from the
-// source code published in the textbook for this course.
-//
-// - I have not discussed coding details about this project with
-// anyone other than my partner (in the case of a joint
-// submission), instructor, ACM/UPE tutors or the TAs assigned
-// to this course. I understand that I may discuss the concepts
-// of this program with other students, and that another student
-// may help me debug my program so long as neither of us writes
-// anything during the discussion or modifies any computer file
-// during the discussion. I have violated neither the spirit nor
-// letter of this restriction.
-
 import java.util.ArrayList;
 
 /**
@@ -25,14 +5,15 @@ import java.util.ArrayList;
  * every reaction that is read in from the input file. The data is stored and retrieved
  * from this class that is relevant for Reaction calculations.
  * 
- * @author Nate Kibler (PID: nkibler7)
- * @author Chris Schweinhart (PID: schwein)
+ * @author Nate Kibler (nkibler7)
+ * @author Chris Schweinhart (schwein)
  */
 public class Reaction implements Comparable <Reaction> {
 	private double rate;
 	private ReactionType type;
 	private int[] reactants, products;
 	private double nextTime = 0.0;
+	private int fired = 0;
 	private ArrayList<Reaction> affectedReactions = null;
 	
 	/**
@@ -106,6 +87,22 @@ public class Reaction implements Comparable <Reaction> {
 		return affectedReactions;
 	}
 
+	/**
+	 * Returns an integer value for the number of times this
+	 * reaction has occurred in the simulation
+	 * @return an int for the number of firings
+	 */
+	public int getFired() {
+		return fired;
+	}
+	
+	/**
+	 * Fires the reaction, incrementing the fired counter
+	 */
+	public void fire() {
+		fired++;
+	}
+	
 	@Override
 	public int compareTo(Reaction r) {
 		if (r.getNextTime() > getNextTime())

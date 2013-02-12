@@ -1,3 +1,7 @@
+// TODO Add header and other javadocs
+
+// TODO why are all these methods public?!
+
 public class MinHeap<E extends Comparable<? super E>> { 
 
 	private E[] Heap;   // Pointer to heap array 
@@ -61,6 +65,15 @@ public class MinHeap<E extends Comparable<? super E>> {
 		Heap[j] = temp;
 	}
 
+	/**
+	 * Method to remove an element in the middle of the heap.
+	 * Used to update the heap without re-making it from scratch.
+	 * @param val the value to be removed
+	 */
+	public void remove(E val) {
+		// TODO implement (hint: use a binary search helper method)
+	}
+	
 	public E removeMin() { 
 		assert n > 0 : "Removing from empty heap"; 
 		swap(0, --n); 

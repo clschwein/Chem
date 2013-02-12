@@ -18,7 +18,6 @@
 // during the discussion. I have violated neither the spirit nor
 // letter of this restriction.
 
-import java.util.Arrays;
 import java.io.*;
 
 /**
@@ -26,26 +25,23 @@ import java.io.*;
  * 
  * Contains run schedule, heap for reactions, and several helper methods.
  * 
- * Chris Schweinhart (schwein)
- * Nate Kibler (nkibler7)
+ * @author Chris Schweinhart (schwein)
+ * @author Nate Kibler (nkibler7)
  */
 public class Chem {
 
 	// Integers for starting values
-	private static int numSpecies = 0;
-	private static int numReactions = 0;
-	private static int numDisplay = 0;
 	private static int simulationTime = 0;
 	private static int numRuns = 0;
 	private static int time = 0;
-	private static boolean track = false;
-	private static Reaction current = null;
 	private static BufferedWriter out = null;
 
 	// Data structures for species/reaction info
+	private static int[] initialSpecies = null;
 	private static int[] species = null;
 	private static int[] displays = null;
 	private static boolean[] tracks = null;
+	private static int[][] data;
 	private static Reaction[] reactionsArray = null;
 	private static MinHeap<Reaction> reactionsHeap = null;
 
@@ -57,6 +53,9 @@ public class Chem {
 	 */
 	public static void main(String[] args) {
 
+		boolean track = false;
+		Reaction current = null;
+		
 		// Check for proper usage
 		if (args.length != 3) {
 			System.out.println("Usage:");
@@ -83,7 +82,40 @@ public class Chem {
 		for (int i = 0; i < numRuns; i++) {
 			time = 0;
 			
-			// TODO: set propensities, next time, and add to heap for all reactions
+			// Initialize the heap and reactions
+			for (Reaction rxn : reactionsArray) {
+				double propensity = rxn.getRate();
+				int[] reactants = rxn.getReactants();
+				ReactionType type = rxn.getType();
+				
+				// Determine propensity
+				if (type == ReactionType.RXN_TWO) {
+					propensity *= species[reactants[0]];
+				} else if (type == ReactionType.RXN_THREE) {
+					propensity *= species[reactants[0]];
+					propensity *= (species[reactants[0]] - 1);
+				} else if (type == ReactionType.RXN_FOUR) {
+					propensity *= species[reactants[0]];
+					propensity *= species[reactants[1]];
+				}
+				
+				// Generate random number and next-time
+				double rand = Math.random();
+				
+				if (rand == 0) {
+					rxn.setNextTime(simulationTime + 1);
+				} else {
+					rxn.setNextTime(Math.log10(rand)/propensity);
+				}
+				
+				// Add to the heap
+				reactionsHeap.insert(rxn);
+			}
+			
+			// Reset species values to initial ones
+			for (int j = 0; j < species.length; j++) {
+				species[j] = initialSpecies[j];
+			}
 			
 			while (time < simulationTime) {
 				track = false;
@@ -95,6 +127,11 @@ public class Chem {
 				// Test for simulation end
 				if (time > simulationTime) {
 					break;
+				}
+				
+				// Fire the reaction
+				if (numRuns == 1) {
+					current.fire();
 				}
 				
 				// Decrement reactants
@@ -117,11 +154,14 @@ public class Chem {
 					}
 				}
 				
-				// Recalculate next times for affected reactions
+				// Recalculate next times for effected reactions
 				for (Reaction rxn : current.getTable()) {
 					double propensity = rxn.getRate();
 					int[] reactants = rxn.getReactants();
 					ReactionType type = rxn.getType();
+					
+					// Remove reaction from the heap
+					reactionsHeap.remove(rxn);
 					
 					if (type == ReactionType.RXN_TWO) {
 						propensity *= species[reactants[0]];
@@ -142,9 +182,12 @@ public class Chem {
 						rxn.setNextTime(Math.log10(rand)/propensity);
 					}
 					
-					// Remove and re-add to re-order heap
+					// Re-add to re-order heap
 					reactionsHeap.insert(rxn);
 				}
+				
+				// Re-add the fired reaction
+				reactionsHeap.insert(current);
 				
 				// Output for reaction
 				if (numRuns == 1 && track) {
@@ -154,7 +197,11 @@ public class Chem {
 			
 			// Output summary data for one of many runs
 			if (numRuns > 1) {
-				runOutput();
+				runOutput(i);
+				
+				for (int j = 0; j < displays.length; j++) {
+					data[i][j] = species[displays[j]];
+				}
 			}
 		}
 
@@ -193,12 +240,13 @@ public class Chem {
 			String[] tokens = line.split(" ");
 
 			// Use the first four numbers as initial values
-			numSpecies = Integer.parseInt(tokens[0]);
-			numReactions = Integer.parseInt(tokens[1]);
-			numDisplay = Integer.parseInt(tokens[2]);
+			int numSpecies = Integer.parseInt(tokens[0]);
+			int numReactions = Integer.parseInt(tokens[1]);
+			int numDisplay = Integer.parseInt(tokens[2]);
 			simulationTime = Integer.parseInt(tokens[3]);
 
 			// Allocate arrays based on our given parameters
+			initialSpecies = new int[numSpecies];
 			species = new int[numSpecies];
 			reactionsArray = new Reaction[numReactions];
 			displays = new int[numDisplay];
@@ -206,8 +254,8 @@ public class Chem {
 			line = in.readLine();
 			tokens = line.split(" ");
 			// Read in initial species values
-			for (int i = 0; i < numSpecies; i++) {
-				species[i] = Integer.parseInt(tokens[i]);
+			for (int i = 0; i < initialSpecies.length; i++) {
+				initialSpecies[i] = Integer.parseInt(tokens[i]);
 			}
 
 			line = in.readLine();
@@ -297,18 +345,45 @@ public class Chem {
 	 * @return true if successful, false otherwise
 	 */
 	private static void trackOutput() {
-
-		// TODO: implement
+		
+		String output = "";
+		
+		output += "Simulation Time = " + simulationTime + " :\n";
+		for (int index : displays) {
+			output += "S" + index + " = " + species[index] + "; ";
+		}
+		output = output.substring(0, output.length() - 3);
+		
+		try {
+			out.write(output);
+	    } catch (IOException e) {
+			System.out.println("Failure writing to output file.");
+			System.exit(0);
+		}
 	}
 	
 	/**
 	 * Output for one run of many
 	 * 
+	 * @param  run  the run number
 	 * @return true if successful, false otherwise
 	 */
-	private static void runOutput() {
+	private static void runOutput(int run) {
 
-		// TODO: implement
+		String output = "";
+		
+		output += "Simulation summary for run #" + run + " :\n";
+		for (int index : displays) {
+			output += "S" + index + " = " + species[index] + "; ";
+		}
+		output = output.substring(0, output.length() - 3);
+		
+		try {
+			out.write(output);
+	    } catch (IOException e) {
+			System.out.println("Failure writing to output file.");
+			System.exit(0);
+		}
 	}
 	
 	/**
@@ -318,7 +393,21 @@ public class Chem {
 	 */
 	private static void singleOutput() {
 
-		// TODO: implement
+		String output = "";
+		
+		output += "\nSimulation Summary:\n";
+		for (int i = 0; i < reactionsArray.length; i++) {
+			Reaction rxn = reactionsArray[i];
+			output += "Reaction " + i + " fired " + rxn.getFired() + " time(s)\n";
+		}
+		output = output.substring(0, output.length() - 2);
+		
+		try {
+			out.write(output);
+	    } catch (IOException e) {
+			System.out.println("Failure writing to output file.");
+			System.exit(0);
+		}
 	}
 	
 	/**
@@ -328,6 +417,43 @@ public class Chem {
 	 */
 	private static void finalOutput() {
 
-		// TODO: implement
+		for (int i = 0; i < displays.length; i++) {
+			data[i][displays.length] = 0;
+			for (int j = 0; j < numRuns; j++) {
+				data[i][displays.length] += data[i][j];
+			}
+			data[i][displays.length] /= numRuns;
+		}
+		
+		for (int i = 0; i < displays.length; i++) {
+			data[i][displays.length + 1] = 0;
+			for (int j = 0; j < numRuns; j++) {
+				data[i][displays.length + 1] += Math.pow(data[i][displays.length] - data[i][j], 2);
+			}
+			data[i][displays.length + 1] /= numRuns;
+		}
+		
+		String output = "";
+		
+		output += "\nSimulation Summary:\n";
+		
+		output += "Means\n";
+		for (int i = 0; i < displays.length; i++) {
+			output += "S" + i + " = " + data[i][displays.length] + "; ";
+		}
+		output = output.substring(0, output.length() - 3);
+		
+		output += "\nVariances\n";
+		for (int i = 0; i < displays.length; i++) {
+			output += "S" + i + " = " + data[i][displays.length + 1] + "; ";
+		}
+		output = output.substring(0, output.length() - 3);
+		
+		try {
+			out.write(output);
+	    } catch (IOException e) {
+			System.out.println("Failure writing to output file.");
+			System.exit(0);
+		}
 	}
 }
