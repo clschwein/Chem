@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 /**
  * This Reaction class allows for the creation of a separate Reaction object for
  * every reaction that is read in from the input file. The data is stored and retrieved
@@ -133,5 +135,19 @@ public class Reaction implements Comparable <Reaction> {
 		return r.getType().equals(getType()) &&
 				r.getRate() == getRate() &&
 				compareTo(r) == 0;
+	}
+	
+	@Override
+	public String toString() {
+		String output = super.toString() + ":\n";
+		
+		output += "rate = " + rate + "\n";
+		output += "type = " + type + "\n";
+		output += "reactants = " + Arrays.toString(reactants) + "\n";
+		output += "products = " + Arrays.toString(products) + "\n";
+		output += "nextTime = " + nextTime + "\n";
+		output += "fired = " + fired + "\n";
+		
+		return output;
 	}
 }

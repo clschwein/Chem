@@ -35,7 +35,7 @@ public class Chem {
 	private static int minIndex = 100;
 	private static int simulationTime = 0;
 	private static int numRuns = 0;
-	private static int time = 0;
+	private static double time = 0;
 	private static BufferedWriter out = null;
 
 	// Data structures for species/reaction info
@@ -67,7 +67,8 @@ public class Chem {
 
 		// Read from file to initialize variables
 		initialize(args[1]);
-			
+		
+		// Set up output file writer
 		try {
 			out = new BufferedWriter(new FileWriter(args[2]));
 		} catch (FileNotFoundException e) {
@@ -82,6 +83,11 @@ public class Chem {
 
 		for (int i = 0; i < numRuns; i++) {
 			time = 0;
+			
+			// Reset species to initial values
+			for (int j = 0; j < species.length; j++) {
+				species[j] = initialSpecies[j];
+			}
 			
 			// Initialize the heap and reactions
 			reactionsHeap = new MinHeap<Reaction>(new Reaction[reactionsArray.length], 0);
@@ -104,20 +110,17 @@ public class Chem {
 				// Generate random number and next-time
 				double rand = Math.random();
 				
-				if (rand == 0) {
+				if (rand < 0.00001 || propensity < 0.00001) {
 					rxn.setNextTime(simulationTime + 1);
 				} else {
-					rxn.setNextTime(Math.log10(rand)/propensity);
+					rxn.setNextTime(Math.log10(1/rand)/propensity);
 				}
 				
 				// Add to the heap
 				reactionsHeap.insert(rxn);
 			}
 			
-			// Reset species values to initial ones
-			for (int j = 0; j < species.length; j++) {
-				species[j] = initialSpecies[j];
-			}
+			System.out.println(reactionsHeap);
 			
 			while (time < simulationTime) {
 				track = false;
@@ -178,18 +181,15 @@ public class Chem {
 					// Generate random number and next-time
 					double rand = Math.random();
 					
-					if (rand == 0) {
+					if (rand < 0.0001 || propensity < 0.00001) {
 						rxn.setNextTime(simulationTime + 1);
 					} else {
-						rxn.setNextTime(Math.log10(rand)/propensity);
+						rxn.setNextTime(time + Math.log10(rand)/propensity);
 					}
 					
 					// Re-add to re-order heap
 					reactionsHeap.insert(rxn);
 				}
-				
-				// Re-add the fired reaction
-				reactionsHeap.insert(current);
 				
 				// Output for reaction
 				if (numRuns == 1 && track) {
@@ -360,6 +360,9 @@ public class Chem {
 			for (int i = 0; i < reactionsArray.length; i++) {
 				LinkedList<Reaction> table = new LinkedList<Reaction>();
 				Reaction rxn = reactionsArray[i];
+				
+				table.add(rxn);
+				
 				int[] reactants = rxn.getReactants();
 				if (reactants != null) {
 					for (int j = 0; j < reactants.length; j++) {

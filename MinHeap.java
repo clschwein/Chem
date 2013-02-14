@@ -157,4 +157,15 @@ public class MinHeap<E extends Comparable<? super E>> {
 			curr = parent(curr); 
 		} 
 	}
+	
+	@Override
+	public String toString() {
+		String output = "";
+		
+		for (E element : Heap) {
+			output += element.toString() + "\n";
+		}
+		
+		return output;
+	}
 }
