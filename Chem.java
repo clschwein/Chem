@@ -82,7 +82,7 @@ public class Chem {
 			time = 0;
 			
 			// Initialize the heap and reactions
-			reactionsHeap = new MinHeap<Reaction>(new Reaction[reactionsArray.length], 0, reactionsArray.length);
+			reactionsHeap = new MinHeap<Reaction>(new Reaction[reactionsArray.length], 0);
 			for (Reaction rxn : reactionsArray) {
 				double propensity = rxn.getRate();
 				int[] reactants = rxn.getReactants();
