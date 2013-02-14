@@ -110,6 +110,11 @@ public class Reaction implements Comparable <Reaction> {
 		fired++;
 	}
 	
+	/**
+	 * Returns negative, 0, or positive based upon the difference in reaction times.
+	 * @param r - the Reaction object to compare with
+	 * @return -1 if time of r is > this, 0 if equal, or 1 if time of r is < this
+	 */
 	@Override
 	public int compareTo(Reaction r) {
 		if (r.getNextTime() > getNextTime())
@@ -117,5 +122,16 @@ public class Reaction implements Comparable <Reaction> {
 		if (r.getNextTime() < getNextTime())
 			return 1;
 		return 0;
+	}
+	
+	/**
+	 * Determines if this Reaction object and given r are equal.
+	 * @param r - the Reaction object to compare with this 
+	 * @return true if they are equal, false otherwise
+	 */
+	public boolean equals(Reaction r) {
+		return r.getType().equals(getType()) &&
+				r.getRate() == getRate() &&
+				compareTo(r) == 0;
 	}
 }
