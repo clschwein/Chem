@@ -1,0 +1,17 @@
+Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 20Simulation Time = 10 :
+S1 = 19Simulation Time = 10 :
+S1 = 19Simulation Time = 10 :
+S1 = 19
+Simulation Summary:
+Reaction 0 fired 8 time(s)
+Reaction 1 fired 4 time(s)
+Reaction 2 fired 7 time(s)
+Reaction 3 fired 0 time(s
