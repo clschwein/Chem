@@ -32,6 +32,7 @@ import java.util.*;
 public class Chem {
 
 	// Integers for starting values
+	private static int minIndex = 100;
 	private static int simulationTime = 0;
 	private static int numRuns = 0;
 	private static int time = 0;
@@ -66,14 +67,15 @@ public class Chem {
 
 		// Read from file to initialize variables
 		initialize(args[1]);
-
+			
 		try {
 			out = new BufferedWriter(new FileWriter(args[2]));
 		} catch (FileNotFoundException e) {
 			System.out.println("The output file could not be found.");
 			System.exit(0);
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Error with output file.");
+			System.exit(0);
 		}
 		
 		numRuns = Integer.parseInt(args[0]);
@@ -254,6 +256,10 @@ public class Chem {
 			displays = new int[numDisplays];
 			tracks = new boolean[numSpecies];
 			data = new int[numDisplays][numRuns];
+			
+			for (int i = 0; i < species.length; i++) {
+				speciesLinks.add(new LinkedList<Reaction>());
+			}
 
 			line = in.readLine();
 			tokens = line.split(" ");
@@ -262,19 +268,22 @@ public class Chem {
 				initialSpecies[i] = Integer.parseInt(tokens[i]);
 			}
 
-			line = in.readLine();
-			tokens = line.split(" ");
-			// Read in display species
-			for (int i = 0; i < displays.length; i++) {
-				displays[i] = Integer.parseInt(tokens[i]);
-				tracks[Integer.parseInt(tokens[i])] = true;
-			}
+			// Save the displayed species for after we know the min index
+			String save = in.readLine();
 			
 			// Read in reaction coefficients
 			for (int i = 0; i < numReactions; i++) {
 				line = in.readLine();
 				tokens = line.split(" ");
 
+				String pattern;
+				for (int j = 0; j < 100; j++) {
+					pattern = "S" + j;
+					if (line.contains(pattern) && j < minIndex) {
+						minIndex = j;
+					}
+				}
+				
 				int offset = 0;
 				double rate = 0;
 				ReactionType type = null;
@@ -289,19 +298,19 @@ public class Chem {
 				} else if (tokens[1] == "+") {
 					type = ReactionType.RXN_FOUR;
 					reactants = new int[2];
-					reactants[0] = Integer.parseInt(tokens[0].substring(1));
-					reactants[1] = Integer.parseInt(tokens[2].substring(1));
+					reactants[0] = Integer.parseInt(tokens[0].substring(1)) - minIndex;
+					reactants[1] = Integer.parseInt(tokens[2].substring(1)) - minIndex;
 					offset = 3;
 				} else if (tokens[0].charAt(0) == '2') {
 					type = ReactionType.RXN_THREE;
 					reactants = new int[2];
-					reactants[0] = Integer.parseInt(tokens[0].substring(2));
+					reactants[0] = Integer.parseInt(tokens[0].substring(2)) - minIndex;
 					reactants[1] = reactants[0];
 					offset = 1;
 				} else {
 					type = ReactionType.RXN_TWO;
 					reactants = new int[1];
-					reactants[0] = Integer.parseInt(tokens[0].substring(1));
+					reactants[0] = Integer.parseInt(tokens[0].substring(1)) - minIndex;
 					offset = 1;
 				}
 
@@ -314,27 +323,36 @@ public class Chem {
 					products = null;
 				} else if ((offset == tokens.length - 1) && tokens[offset].charAt(0) == '2') {
 					products = new int[2];
-					products[0] = Integer.parseInt(tokens[offset].substring(2));
+					products[0] = Integer.parseInt(tokens[offset].substring(2)) - minIndex;
 					products[1] = products[0];
 				} else if (offset == tokens.length - 1) {
 					products = new int[1];
-					products[0] = Integer.parseInt(tokens[offset].substring(1));
+					products[0] = Integer.parseInt(tokens[offset].substring(1)) - minIndex;
 				} else {
 					products = new int[2];
-					products[0] = Integer.parseInt(tokens[offset].substring(1));
-					products[1] = Integer.parseInt(tokens[offset + 2].substring(1));
+					products[0] = Integer.parseInt(tokens[offset].substring(1)) - minIndex;
+					products[1] = Integer.parseInt(tokens[offset + 2].substring(1)) - minIndex;
 				}
 				
 				// Add reaction to array
 				reactionsArray[i] = new Reaction(rate, type, reactants, products);
 			}
-
+			
+			// Read in display species
+			tokens = save.split(" ");
+			for (int i = 0; i < displays.length; i++) {
+				displays[i] = Integer.parseInt(tokens[i]) - minIndex;
+				tracks[Integer.parseInt(tokens[i]) - minIndex] = true;
+			}
+			
 			// Build species links
 			for (int i = 0; i < reactionsArray.length; i++) {
 				Reaction rxn = reactionsArray[i];
 				int[] reactants = rxn.getReactants();
-				for (int j = 0; j < reactants.length; j++) {
-					speciesLinks.get(i).add(rxn);
+				if (reactants != null) {
+					for (int j = 0; j < reactants.length; j++) {
+						speciesLinks.get(reactants[j]).add(rxn);
+					}
 				}
 			}
 			
@@ -343,26 +361,30 @@ public class Chem {
 				LinkedList<Reaction> table = new LinkedList<Reaction>();
 				Reaction rxn = reactionsArray[i];
 				int[] reactants = rxn.getReactants();
-				for (int j = 0; j < reactants.length; j++) {
-					LinkedList<Reaction> links = speciesLinks.get(reactants[j]);
-					for (int k = 0; k < links.size(); k ++) {
-						if (!table.contains(links.get(k))) {
-							table.add(links.get(k));
+				if (reactants != null) {
+					for (int j = 0; j < reactants.length; j++) {
+						LinkedList<Reaction> links = speciesLinks.get(reactants[j]);
+						for (int k = 0; k < links.size(); k ++) {
+							if (!table.contains(links.get(k))) {
+								table.add(links.get(k));
+							}
 						}
 					}
 				}
 				
 				int[] products = rxn.getProducts();
-				for (int j = 0; j < products.length; j++) {
-					LinkedList<Reaction> links = speciesLinks.get(products[j]);
-					for (int k = 0; k < links.size(); k ++) {
-						if (!table.contains(links.get(k))) {
-							table.add(links.get(k));
+				if (products != null) {
+					for (int j = 0; j < products.length; j++) {
+						LinkedList<Reaction> links = speciesLinks.get(products[j]);
+						for (int k = 0; k < links.size(); k ++) {
+							if (!table.contains(links.get(k))) {
+								table.add(links.get(k));
+							}
 						}
 					}
 				}
 				
-				rxn.setTable((Reaction[])table.toArray());
+				rxn.setTable(table.toArray(new Reaction[1]));
 			}
 			
 			in.close();
@@ -371,6 +393,7 @@ public class Chem {
 			System.exit(0);
 		} catch (Exception e) {
 			System.out.println("Incorrect file formatting.");
+			System.out.println(e);
 			System.exit(0);
 		}
 	}

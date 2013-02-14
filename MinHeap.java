@@ -147,7 +147,7 @@ public class MinHeap<E extends Comparable<? super E>> {
 	public void insert(E val) { 
 		assert n < size : "Heap is full"; 
 		int curr = n++; 
-		Heap[curr] = val; 
+		Heap[curr] = val;
 		// Siftup until curr parent's time < curr time 
 		while ((curr != 0)  && 
 				(Heap[curr]. 
