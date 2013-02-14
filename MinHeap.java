@@ -110,8 +110,9 @@ public class MinHeap<E extends Comparable<? super E>> {
 	public void remove(E val) {
 		assert n > 0 : "Removing from empty heap";
 		int idx = find(val);
-		if (idx == -1)
+		if (idx == -1) {
 			return;
+		}
 		swap(idx, --n);
 		buildheap();
 	}
@@ -133,11 +134,8 @@ public class MinHeap<E extends Comparable<? super E>> {
 	 * Removes the minimum element from the heap and sifts down if necessary.
 	 * @return the element that was removed
 	 */
-	public E removeMin() { 
-		assert n > 0 : "Removing from empty heap"; 
-		swap(0, --n); 
-		if (n != 0) siftdown(0); 
-		return Heap[n]; 
+	public E getMin() { 
+		return Heap[0]; 
 	} 
 	
 	/**
@@ -146,7 +144,7 @@ public class MinHeap<E extends Comparable<? super E>> {
 	 */
 	public void insert(E val) { 
 		assert n < size : "Heap is full"; 
-		int curr = n++; 
+		int curr = n; 
 		Heap[curr] = val;
 		// Siftup until curr parent's time < curr time 
 		while ((curr != 0)  && 
@@ -156,6 +154,7 @@ public class MinHeap<E extends Comparable<? super E>> {
 			swap(curr, parent(curr)); 
 			curr = parent(curr); 
 		} 
+		n++;
 	}
 	
 	@Override
