@@ -120,13 +120,13 @@ public class Chem {
 				reactionsHeap.insert(rxn);
 			}
 			
-			System.out.println(reactionsHeap);
+			//System.out.println(reactionsHeap);
 			
 			while (time < simulationTime) {
 				track = false;
 				
 				// Choose the next reaction
-				current = reactionsHeap.removeMin();
+				current = reactionsHeap.getMin();
 				time += current.getNextTime();
 				
 				// Test for simulation end
@@ -184,7 +184,7 @@ public class Chem {
 					if (rand < 0.0001 || propensity < 0.00001) {
 						rxn.setNextTime(simulationTime + 1);
 					} else {
-						rxn.setNextTime(time + Math.log10(rand)/propensity);
+						rxn.setNextTime(time + Math.log10(1/rand)/propensity);
 					}
 					
 					// Re-add to re-order heap
@@ -215,6 +215,13 @@ public class Chem {
 		// Output summary data for multiple runs
 		if (numRuns > 1) {
 			finalOutput();
+		}
+		
+		try {
+			out.close();
+		} catch (IOException e) {
+			System.out.println("Failure closing output.");
+			System.exit(0);
 		}
 	}
 
