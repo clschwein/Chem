@@ -1,8 +1,8 @@
 /**
  * Enumerated type to represent various reaction types.
  * 
- * Used for making conditional branching easier.  The four
- * types are as follows:
+ * Used for making conditional branching easier when determining
+ * propensities.  The four types are as follows:
  * 1. No reactants
  * 2. One reactant
  * 3. Two reactants w/ repeat
