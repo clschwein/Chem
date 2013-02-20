@@ -166,7 +166,7 @@ public class Chem {
 		// Check for proper usage
 		if (args.length != 3) {
 			System.out.println("Usage:");
-			System.out.println("Chemistry INPUT_FILE RUN OUTPUT_FILE");
+			System.out.println("Chemistry NUM_RUNS INPUT_FILE OUTPUT_FILE");
 			System.exit(0);
 		}
 
