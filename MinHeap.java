@@ -16,14 +16,14 @@ public class MinHeap<E extends Comparable<? super E>> {
 	 * left child is at 2*i + 1 and right child is at 2*i + 2.
 	 */
 	private E[] heap;
-	
+
 	/**
 	 * This integer represents the capacity of the heap.  In java, this
 	 * isn't needed because it is stored in the Heap array, but having this
 	 * variable makes the code easier to read and write.
 	 */
 	private int size;
-	
+
 	/**
 	 * This integer represents the number of elements currently stored in
 	 * the heap.  Will change dynamically based on removals or insertions.
@@ -78,6 +78,18 @@ public class MinHeap<E extends Comparable<? super E>> {
 	private int leftchild(int pos) { 
 		assert pos < n/2 : "Position has no left child"; 
 		return 2*pos + 1; 
+	} 
+
+	/**
+	 * Returns the position of the child on the right of the provided index position.
+	 * @param pos
+	 * 			the index position of the parent to find the right child for
+	 * @return
+	 * 			the index position of the right child
+	 */
+	public int rightchild(int pos) {
+		assert pos < (n-1)/2 : "Position has no right child"; 
+		return 2*pos + 2; 
 	} 
 
 	/**
@@ -152,10 +164,28 @@ public class MinHeap<E extends Comparable<? super E>> {
 		if (idx == -1) {
 			return;
 		}
+		if (idx == (n - 1)) {
+			n--;
+			return;
+		}
 		swap(idx, --n);
-		buildheap();
+		int parentIdx = parent(idx);
+		if (heap[idx].compareTo(heap[parentIdx]) < 0) {
+			int curr = idx;
+			while ((curr != 0)  && 
+					(heap[curr]. 
+							compareTo(heap[parent(curr)]) 
+							< 0)) { 
+				swap(curr, parent(curr)); 
+				curr = parent(curr); 
+			}
+		}
+		else {
+			if (isLeaf(idx))
+				siftdown(idx);
+		}
 	}
-	
+
 	/**
 	 * Returns the index position of the given element in the array.
 	 * Must be linear search since this isn't a binary search tree.
@@ -172,7 +202,7 @@ public class MinHeap<E extends Comparable<? super E>> {
 		}
 		return -1;
 	}
-	
+
 	/**
 	 * Returns the minimum element of the heap.
 	 * 
@@ -182,7 +212,7 @@ public class MinHeap<E extends Comparable<? super E>> {
 	public E getMin() { 
 		return heap[0]; 
 	} 
-	
+
 	/**
 	 * Inserts another element into the heap and shifts it to its proper position.
 	 * 
