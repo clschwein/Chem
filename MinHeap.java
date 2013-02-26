@@ -181,7 +181,7 @@ public class MinHeap<E extends Comparable<? super E>> {
 			}
 		}
 		else {
-			if (isLeaf(idx))
+			if (!isLeaf(idx))
 				siftdown(idx);
 		}
 	}
